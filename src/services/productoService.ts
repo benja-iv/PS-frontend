@@ -1,75 +1,76 @@
-export interface Producto {
-  id: number;
-  nombre: string;
-  categoria: string;
-  precio: number;
-  stock: number;
-  imagen: string;
-  descripcion: string;
-}
+import type { Producto } from '../types';
 
-let productosBase: Producto[] = [
+let productosList: Producto[] = [
   {
     id: 1,
-    nombre: 'Guitarra Eléctrica Fender Stratocaster',
+    nombre: 'Bajo Eléctrico Jazz Bass - Fender',
+    precio: 689990,
+    imagen: '/img/bajo-electrico.png',
     categoria: 'Cuerdas',
-    precio: 750000,
-    stock: 5,
-    imagen: 'https://via.placeholder.com/200',
-    descripcion: 'Guitarra eléctrica clásica versátil y de gran resonancia.'
+    descripcion: 'Tono profundo y definido de alta calidad.',
+    stock: 3,
   },
   {
     id: 2,
-    nombre: 'Batería Acústica Yamaha Stage Custom',
-    categoria: 'Percusión',
-    precio: 1200000,
-    stock: 3,
-    imagen: 'https://via.placeholder.com/200',
-    descripcion: 'Batería de madera de abedul con sonido potente.'
+    nombre: 'Guitarra Acústica Folk - Yamaha',
+    precio: 129990,
+    imagen: '/img/guitarra-acustica.png',
+    categoria: 'Cuerdas',
+    descripcion: 'Excelente resonancia y calidad sonora para músicos de todos los niveles.',
+    stock: 8,
   },
   {
     id: 3,
-    nombre: 'Teclado Roland FP-30X',
-    categoria: 'Teclados',
-    precio: 680000,
-    stock: 8,
-    imagen: 'https://via.placeholder.com/200',
-    descripcion: 'Teclado digital con tacto de piano real y conectividad Bluetooth.'
-  }
+    nombre: 'Guitarra Eléctrica Stratocaster - Squier',
+    precio: 249990,
+    imagen: '/img/guitarra-electrica.png',
+    categoria: 'Cuerdas',
+    descripcion: 'Sonido clásico y versátil con tres cápsulas single-coil.',
+    stock: 5,
+  },
 ];
 
 export const obtenerProductos = (): Producto[] => {
-  return [...productosBase];
+  return productosList;
 };
 
 export const obtenerProductoPorId = (id: number): Producto | undefined => {
-  return productosBase.find((p) => p.id === id);
+  return productosList.find((p) => p.id === id);
 };
 
 export const crearProducto = (producto: Omit<Producto, 'id'>): Producto => {
-  const nuevoId = productosBase.length > 0 ? Math.max(...productosBase.map((p) => p.id)) + 1 : 1;
-  const nuevoProducto: Producto = { id: nuevoId, ...producto };
-  productosBase.push(nuevoProducto);
+  const nuevoProducto: Producto = {
+    ...producto,
+    id: productosList.length > 0 ? Math.max(...productosList.map((p) => p.id)) + 1 : 1,
+  };
+  productosList.push(nuevoProducto);
   return nuevoProducto;
 };
 
-export const actualizarProducto = (id: number, datosActualizados: Partial<Omit<Producto, 'id'>>): Producto | null => {
-  const index = productosBase.findIndex((p) => p.id === id);
-  if (index === -1) return null;
-  productosBase[index] = { ...productosBase[index], ...datosActualizados };
-  return productosBase[index];
+export const actualizarProducto = (id: number, datos: Partial<Producto>): Producto | undefined => {
+  const index = productosList.findIndex((p) => p.id === id);
+  if (index !== -1) {
+    productosList[index] = { ...productosList[index], ...datos };
+    return productosList[index];
+  }
+  return undefined;
 };
 
 export const eliminarProducto = (id: number): boolean => {
-  const longitudInicial = productosBase.length;
-  productosBase = productosBase.filter((p) => p.id !== id);
-  return productosBase.length < longitudInicial;
+  const index = productosList.findIndex((p) => p.id === id);
+  if (index !== -1) {
+    productosList.splice(index, 1);
+    return true;
+  }
+  return false;
 };
 
-export const filtrarProductos = (termino: string, categoria: string = ''): Producto[] => {
-  return productosBase.filter((p) => {
-    const coincideNombre = p.nombre.toLowerCase().includes(termino.toLowerCase());
-    const coincideCategoria = categoria === '' || p.categoria === categoria;
-    return coincideNombre && coincideCategoria;
-  });
+export const filtrarProductos = (termino: string): Producto[] => {
+  const t = termino.toLowerCase();
+  return productosList.filter(
+    (p) =>
+      p.nombre.toLowerCase().includes(t) ||
+      (p.descripcion && p.descripcion.toLowerCase().includes(t)) ||
+      p.categoria.toLowerCase().includes(t)
+  );
 };

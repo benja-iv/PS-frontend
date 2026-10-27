@@ -1,59 +1,89 @@
-import { useState, useMemo } from 'react';
-import { obtenerProductos, filtrarProductos } from '../services/productoService';
+import React, { useEffect, useState } from 'react';
+import type { Producto } from '../types';
+import { obtenerProductos } from '../services/productoService';
 import { useCart } from '../context/CartContext';
 
-export function Catalogo() {
-  const [busqueda, setBusqueda] = useState('');
-  const [categoria, setCategoria] = useState('');
+export const Catalogo: React.FC = () => {
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [filtroCategoria, setFiltroCategoria] = useState<string>('todos');
+  const [busqueda, setBusqueda] = useState<string>('');
   const { agregarAlCarrito } = useCart();
 
-  const productos = useMemo(() => {
-    return filtrarProductos(busqueda, categoria);
-  }, [busqueda, categoria]);
+  useEffect(() => {
+    const data = obtenerProductos();
+    setProductos(data);
+  }, []);
+
+  const productosFiltrados = productos.filter((p) => {
+    const coincideCategoria =
+      filtroCategoria === 'todos' ||
+      p.categoria.toLowerCase() === filtroCategoria.toLowerCase();
+    const coincideBusqueda =
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      (p.descripcion && p.descripcion.toLowerCase().includes(busqueda.toLowerCase()));
+    return coincideCategoria && coincideBusqueda;
+  });
 
   return (
-    <main style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' }}>
-      <h1>Catálogo de Instrumentos</h1>
-
-      <div style={{ display: 'flex', gap: '1rem', margin: '1rem 0', flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Buscar producto..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', flex: 1 }}
-        />
-
-        <select
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-          style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-        >
-          <option value="">Todas las categorías</option>
-          <option value="Cuerdas">Cuerdas</option>
-          <option value="Percusión">Percusión</option>
-          <option value="Teclados">Teclados</option>
-        </select>
+    <div className="container py-4">
+      <div className="row mb-4 align-items-center g-3">
+        <div className="col-md-6">
+          <h2 className="mb-0">Catálogo de Instrumentos</h2>
+        </div>
+        <div className="col-md-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Buscar producto..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="col-md-3">
+          <select
+            className="form-select w-auto"
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+          >
+            <option value="todos">Todas las categorías</option>
+            <option value="Cuerdas">Cuerdas</option>
+            <option value="bajo">Bajos</option>
+            <option value="guitarra_acustica">Guitarras Acústicas</option>
+            <option value="guitarra_electrica">Guitarras Eléctricas</option>
+          </select>
+        </div>
       </div>
 
-      {productos.length === 0 ? (
-        <p>No se encontraron productos</p>
+      {productosFiltrados.length === 0 ? (
+        <div className="alert alert-warning text-center my-4" role="alert">
+          No se encontraron productos que coincidan con la búsqueda.
+        </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '2rem' }}>
-          {productos.map((producto) => (
-            <div key={producto.id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', textAlign: 'center' }}>
-              <h3>{producto.nombre}</h3>
-              <p style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>$ {producto.precio.toLocaleString()}</p>
-              <button
-                onClick={() => agregarAlCarrito(producto)}
-                style={{ background: '#007bff', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Añadir al carrito
-              </button>
+        <div className="row g-4">
+          {productosFiltrados.map((p) => (
+            <div key={p.id} className="col-md-4">
+              <div className="card h-100 shadow-sm">
+                <img
+                  src={p.imagen}
+                  className="card-img-top"
+                  alt={p.nombre}
+                  style={{ height: '220px', objectFit: 'contain' }}
+                />
+                <div className="card-body d-flex flex-column">
+                  <h5 className="card-title">{p.nombre}</h5>
+                  <p className="card-text text-muted flex-grow-1">{p.descripcion}</p>
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <span className="fw-bold fs-5">${p.precio.toLocaleString()}</span>
+                    <button className="btn btn-primary" onClick={() => agregarAlCarrito(p)}>
+                      Agregar al Carrito
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
-}
+};

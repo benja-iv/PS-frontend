@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   obtenerProductos,
   obtenerProductoPorId,
@@ -21,8 +21,10 @@ describe('Módulo de Datos y Operaciones CRUD', () => {
   });
 
   it('debe crear un nuevo producto correctamente (CREATE)', () => {
+    const cantidadInicial = obtenerProductos().length;
+
     const nuevo = crearProducto({
-      nombre: 'Bajo Eléctrico Ibanez',
+      nombre: 'Bajo Eléctrico Ibanez SDGR',
       categoria: 'Cuerdas',
       precio: 450000,
       stock: 4,
@@ -31,7 +33,7 @@ describe('Módulo de Datos y Operaciones CRUD', () => {
     });
 
     expect(nuevo.id).toBeDefined();
-    expect(obtenerProductos()).toHaveLength(4);
+    expect(obtenerProductos()).toHaveLength(cantidadInicial + 1);
   });
 
   it('debe actualizar un producto existente (UPDATE)', () => {
