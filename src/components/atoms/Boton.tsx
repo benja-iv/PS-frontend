@@ -1,29 +1,16 @@
-import React from 'react';
+import { Link } from "react-router-dom";
 
-
-export interface ButtonProps {
-  label: string;
-  onClick: () => void;
-  type?: 'button' | 'submit';
-  variant?: 'primary' | 'secondary' | 'danger';
-  disabled?: boolean;
+interface BotonProps {
+    id: number;
+    texto?: string;
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  label,
-  onClick,
-  type = 'button',
-  variant = 'primary',
-  disabled = false,
-}) => {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`btn btn-${variant}`}
-    >
-      {label}
-    </button>
-  );
-};
+function Boton({ id, texto = "Ver detalle" }: BotonProps) {
+    return (
+        <Link to={`/detalle/${id}`} className="btn anime-cta-btn w-100">
+            {texto}
+        </Link>
+    );
+}
+
+export default Boton;
