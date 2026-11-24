@@ -1,13 +1,60 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CardProducto from "../components/molecules/CardProducto";
-import { listaProductos, categorias } from "../ListaProductos/Productos";
 import "../App.css";
 
-function Productos() {
-    const [categoriaActiva, setCategoriaActiva] = useState<string>("Todos");
+interface ProductoAPI {
+    id: number;
+    nombre: string;
+    marca: string;
+    descripcion: string;
+    precio: number;
+    stock: number;
+    imagenUrl: string;
+    categoriaNombre: string;
+}
 
-    const productosFiltrados = listaProductos.filter((prod) => {
-        return categoriaActiva === "Todos" || prod.categoria === categoriaActiva;
+interface CategoriaAPI {
+    id: number;
+    nombre: string;
+    descripcion?: string;
+}
+
+function Productos() {
+    const [productos, setProductos] = useState<ProductoAPI[]>([]);
+    const [categorias, setCategorias] = useState<string[]>(["Todos"]);
+    const [categoriaActiva, setCategoriaActiva] = useState<string>("Todos");
+    const [cargando, setCargando] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const cargarCatalogo = async () => {
+            try {
+                const [resProductos, resCategorias] = await Promise.all([
+                    fetch("http://localhost:8082/api/productos"),
+                    fetch("http://localhost:8082/api/categorias"),
+                ]);
+
+                if (!resProductos.ok || !resCategorias.ok) {
+                    throw new Error("No se pudo obtener el catálogo desde el servidor.");
+                }
+
+                const dataProductos: ProductoAPI[] = await resProductos.json();
+                const dataCategorias: CategoriaAPI[] = await resCategorias.json();
+
+                setProductos(dataProductos);
+                setCategorias(["Todos", ...dataCategorias.map((cat) => cat.nombre)]);
+            } catch (err) {
+                setError("No se pudo conectar con ms-producto (puerto 8082). Verifica que el microservicio esté encendido.");
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        cargarCatalogo();
+    }, []);
+
+    const productosFiltrados = productos.filter((prod) => {
+        return categoriaActiva === "Todos" || prod.categoriaNombre === categoriaActiva;
     });
 
     return (
@@ -48,8 +95,18 @@ function Productos() {
                     </div>
                 </div>
 
-                {/* Grilla de Productos */}
-                {productosFiltrados.length > 0 ? (
+                {/* Estado de carga o error */}
+                {cargando ? (
+                    <div className="text-center py-5 anime-glass-card mx-auto" style={{ maxWidth: "500px" }}>
+                        <h4 className="fw-bold">Cargando instrumentos...</h4>
+                        <p className="mb-0">Consultando el catálogo en la base de datos.</p>
+                    </div>
+                ) : error ? (
+                    <div className="alert alert-danger text-center mx-auto" style={{ maxWidth: "600px" }} role="alert">
+                        {error}
+                    </div>
+                ) : productosFiltrados.length > 0 ? (
+                    /* Grilla de Productos */
                     <div className="row g-4 justify-content-center">
                         {productosFiltrados.map((prod) => (
                             <div
@@ -58,10 +115,10 @@ function Productos() {
                             >
                                 <CardProducto
                                     id={prod.id}
-                                    titulo={prod.titulo}
+                                    titulo={prod.nombre}
                                     descripcion={prod.descripcion}
                                     precio={prod.precio}
-                                    imagen={prod.imagen}
+                                    imagen={prod.imagenUrl}
                                 />
                             </div>
                         ))}

@@ -1,18 +1,26 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import { useAuth } from "../context/AuthContext";
 import "../../App.css";
 
 function Navbar() {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const { totalItems } = useCarrito();
+    const { usuario, cerrarSesion, esAdmin } = useAuth();
+    const navigate = useNavigate();
 
     const cerrarMenu = () => setMenuAbierto(false);
+
+    const handleLogout = () => {
+        cerrarSesion();
+        cerrarMenu();
+        navigate("/");
+    };
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark anime-navbar sticky-top">
             <div className="container">
-                {/* Marca de la tienda */}
                 <Link
                     className="navbar-brand fw-bold anime-brand"
                     to="/"
@@ -21,7 +29,6 @@ function Navbar() {
                     SONIDO <span className="anime-highlight">VIVO</span>
                 </Link>
 
-                {/* Botón hamburguesa controlado por React */}
                 <button
                     className="navbar-toggler border-0"
                     type="button"
@@ -33,12 +40,11 @@ function Navbar() {
                     <span className="navbar-toggler-icon"></span>
                 </button>
 
-                {/* Enlaces de navegación */}
                 <div
                     className={`collapse navbar-collapse ${menuAbierto ? "show" : ""}`}
                     id="navbarSonidoVivo"
                 >
-                    <ul className="navbar-nav ms-auto gap-2 mt-3 mt-lg-0 text-center">
+                    <ul className="navbar-nav ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0 text-center">
                         <li className="nav-item">
                             <NavLink
                                 to="/"
@@ -100,6 +106,42 @@ function Navbar() {
                                 )}
                             </NavLink>
                         </li>
+
+                        {usuario ? (
+                            <>
+                                <li className="nav-item">
+                                    <span className="nav-link text-light fw-semibold">
+                                        Hola, {usuario.nombre}
+                                        {esAdmin && (
+                                            <span className="badge bg-warning text-dark ms-2">
+                                                ADMIN
+                                            </span>
+                                        )}
+                                    </span>
+                                </li>
+                                <li className="nav-item">
+                                    <button
+                                        type="button"
+                                        onClick={handleLogout}
+                                        className="btn btn-sm anime-filter-btn"
+                                    >
+                                        Salir
+                                    </button>
+                                </li>
+                            </>
+                        ) : (
+                            <li className="nav-item">
+                                <NavLink
+                                    to="/login"
+                                    onClick={cerrarMenu}
+                                    className={({ isActive }) =>
+                                        `nav-link anime-nav-link ${isActive ? "active" : ""}`
+                                    }
+                                >
+                                    Ingresar
+                                </NavLink>
+                            </li>
+                        )}
                     </ul>
                 </div>
             </div>

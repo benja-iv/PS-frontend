@@ -6,34 +6,27 @@ import Contacto from './pages/Contacto';
 import Inicio from './pages/Inicio';
 import Detalle from './pages/Detalle';
 import Carrito from './pages/Carrito';
+import Login from './pages/Login';
 import { CarritoProvider } from './components/context/CarritoContext';
+import { AuthProvider } from './components/context/AuthContext';
 
 function App() {
   return (
-    <CarritoProvider>
-      <Navbar />
+    <AuthProvider>
+      <CarritoProvider>
+        <Navbar />
 
-      <Routes>
-        <Route path="/" 
-        element={<Inicio />} />
-
-        <Route path="/productos" 
-        element={<Productos />} />
-
-        <Route path="/quienes_somos" 
-        element={<QuienesSomos />} />
-
-        <Route path="/contacto" 
-        element={<Contacto />} />
-
-        <Route path="/detalle/:id" 
-        element={<Detalle />} />
-
-        <Route path="/carrito" 
-        element={<Carrito />} />
-
-      </Routes>
-    </CarritoProvider>
+        <Routes>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/productos" element={<Productos />} />
+          <Route path="/quienes_somos" element={<QuienesSomos />} />
+          <Route path="/contacto" element={<Contacto />} />
+          <Route path="/detalle/:id" element={<Detalle />} />
+          <Route path="/carrito" element={<Carrito />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </CarritoProvider>
+    </AuthProvider>
   );
 }
 

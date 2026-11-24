@@ -7,16 +7,47 @@ function Contacto() {
     const [instrumentoInteres, setInstrumentoInteres] = useState("Consulta general");
     const [mensaje, setMensaje] = useState("");
     const [enviado, setEnviado] = useState(false);
+    const [enviando, setEnviando] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!nombre.trim() || !email.trim() || !mensaje.trim()) return;
 
-        setEnviado(true);
-        setNombre("");
-        setEmail("");
-        setInstrumentoInteres("Consulta general");
-        setMensaje("");
+        setEnviando(true);
+        setError(null);
+        setEnviado(false);
+
+        try {
+            const response = await fetch("http://localhost:8083/api/contacto", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nombre: nombre,
+                    email: email,
+                    telefono: null,
+                    asunto: instrumentoInteres,
+                    mensaje: mensaje,
+                }),
+            });
+
+            if (response.ok) {
+                setEnviado(true);
+                setNombre("");
+                setEmail("");
+                setInstrumentoInteres("Consulta general");
+                setMensaje("");
+            } else {
+                const errorData = await response.json();
+                setError(errorData.message || "No se pudo enviar el mensaje. Revisa los datos.");
+            }
+        } catch (err) {
+            setError("No se pudo conectar con el servidor (puerto 8083). Verifica que ms-contacto esté encendido.");
+        } finally {
+            setEnviando(false);
+        }
     };
 
     return (
@@ -60,7 +91,7 @@ function Contacto() {
                                 <div className="mb-3">
                                     <h6 className="fw-bold text-uppercase mb-1">Correo y Teléfono</h6>
                                     <p className="mb-0">contacto@sonidovivo.cl</p>
-                                    <p className="mb-0">+56 9 3648 0753</p>
+                                    <p className="mb-0">+56 9 8765 4321</p>
                                 </div>
                             </div>
 
@@ -87,6 +118,18 @@ function Contacto() {
                                         className="btn-close"
                                         aria-label="Cerrar"
                                         onClick={() => setEnviado(false)}
+                                    ></button>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+                                    <span>{error}</span>
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        aria-label="Cerrar"
+                                        onClick={() => setError(null)}
                                     ></button>
                                 </div>
                             )}
@@ -148,16 +191,21 @@ function Contacto() {
                                     <textarea
                                         id="mensaje"
                                         rows={4}
+                                        minLength={10}
                                         className="form-control"
-                                        placeholder="Cuéntanos qué instrumento buscas o en qué podemos ayudarte..."
+                                        placeholder="Cuéntanos qué instrumento buscas o en qué podemos ayudarte (mínimo 10 caracteres)..."
                                         value={mensaje}
                                         onChange={(e) => setMensaje(e.target.value)}
                                         required
                                     ></textarea>
                                 </div>
 
-                                <button type="submit" className="btn anime-cta-btn w-100 py-2 fw-bold">
-                                    Enviar Consulta
+                                <button
+                                    type="submit"
+                                    className="btn anime-cta-btn w-100 py-2 fw-bold"
+                                    disabled={enviando}
+                                >
+                                    {enviando ? "Enviando..." : "Enviar Consulta"}
                                 </button>
                             </form>
                         </div>
